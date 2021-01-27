@@ -1,0 +1,16 @@
+[package]
+name = "entity-system"
+description = "Entity System Composant"
+version = "0.1.0"
+readme = "README.md"
+authors = ["Etienne Vaillant <vaillant.etienne@gmail.com>"]
+edition = "2018"
+license = "BSL-1.0"
+documentation = "https://docs.rs/entity-system"
+homepage = "https://github.com/EVaillant/entity-system-rs"
+repository = "https://github.com/EVaillant/entity-system-rs"
+keywords = ["esc"]
+categories = []
+
+[dependencies]
+paste = "1.0"
