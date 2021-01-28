@@ -90,21 +90,15 @@ impl<EventType> Adapter<EventType> {
         }
     }
 
-    pub fn connect<EventHandlerType>(&mut self, handler: Rc<RefCell<EventHandlerType>>)
-    where
-        EventHandlerType: EventHandler<EventType> + 'static,
-    {
+    pub fn connect(&mut self, handler: Rc<RefCell<dyn EventHandler<EventType>>>) {
         self.handlers.push(handler);
     }
 
-    pub fn disconnect<EventHandlerType>(&mut self, handler: Rc<RefCell<EventHandlerType>>)
-    where
-        EventHandlerType: EventHandler<EventType> + 'static,
-    {
+    pub fn disconnect(&mut self, handler: Rc<RefCell<dyn EventHandler<EventType>>>) {
         if let Some(pos) = self
             .handlers
             .iter()
-            .position(|x| x.as_ptr() == handler.as_ptr())
+            .position(|x| std::ptr::eq(x.as_ptr() as *const (), handler.as_ptr() as *const ()))
         {
             self.handlers.remove(pos);
         }
@@ -114,6 +108,12 @@ impl<EventType> Adapter<EventType> {
         for handler in self.handlers.iter() {
             handler.borrow_mut().on_event(event);
         }
+    }
+}
+
+impl<EventType> Default for Adapter<EventType> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
