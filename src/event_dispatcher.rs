@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::marker::PhantomData;
 use std::rc::{Rc, Weak};
 
@@ -6,13 +7,13 @@ pub trait EventHandler<EventType> {
     fn on_event(&mut self, event: &EventType);
 }
 
-pub trait Dispatcher {
+pub trait Dispatcher<EventAdapters> {
     fn connect<EventHandlerType, EventType>(
         self: &Rc<Self>,
         handler: Rc<RefCell<EventHandlerType>>,
     ) where
         EventHandlerType: EventHandler<EventType> + 'static,
-        Self: AccessEventAdapter<EventType>,
+        EventAdapters: AccessEventAdapter<EventType>,
         EventType: 'static;
 
     fn disconnect<EventHandlerType, EventType>(
@@ -20,7 +21,7 @@ pub trait Dispatcher {
         handler: Rc<RefCell<EventHandlerType>>,
     ) where
         EventHandlerType: EventHandler<EventType> + 'static,
-        Self: AccessEventAdapter<EventType>,
+        EventAdapters: AccessEventAdapter<EventType>,
         EventType: 'static;
 }
 
@@ -28,29 +29,33 @@ pub trait AccessEventAdapter<EventType> {
     fn get(&self) -> &RefCell<Adapter<EventType>>;
 }
 
-pub struct Connection<DispatcherType, EventHandlerType, EventType>
+pub struct Connection<DispatcherType, EventAdapters, EventHandlerType, EventType>
 where
     EventType: 'static,
     EventHandlerType: EventHandler<EventType> + 'static,
-    DispatcherType: Dispatcher,
+    DispatcherType: Dispatcher<EventAdapters>,
+    EventAdapters: AccessEventAdapter<EventType>,
 {
     dispatcher: Weak<DispatcherType>,
     handler: Weak<RefCell<EventHandlerType>>,
     event: PhantomData<EventType>,
+    adapters: PhantomData<EventAdapters>,
 }
 
-impl<DispatcherType, EventHandlerType, EventType>
-    Connection<DispatcherType, EventHandlerType, EventType>
+impl<DispatcherType, EventAdapters, EventHandlerType, EventType>
+    Connection<DispatcherType, EventAdapters, EventHandlerType, EventType>
 where
     EventType: 'static,
     EventHandlerType: EventHandler<EventType> + 'static,
-    DispatcherType: Dispatcher + AccessEventAdapter<EventType>,
+    DispatcherType: Dispatcher<EventAdapters>,
+    EventAdapters: AccessEventAdapter<EventType>,
 {
     pub fn new(dispatcher: &Rc<DispatcherType>, handler: &Rc<RefCell<EventHandlerType>>) -> Self {
         Self {
             dispatcher: Rc::downgrade(dispatcher),
             handler: Rc::downgrade(handler),
             event: PhantomData,
+            adapters: PhantomData,
         }
     }
 
@@ -59,6 +64,7 @@ where
             dispatcher: Weak::new(),
             handler: Weak::new(),
             event: PhantomData,
+            adapters: PhantomData,
         }
     }
 
@@ -117,102 +123,131 @@ impl<EventType> Default for Adapter<EventType> {
     }
 }
 
+type EventCallbackType<S> = VecDeque<Box<dyn FnMut(&Rc<S>)>>;
+
+pub struct EventDispatcher<EventAdapters>
+where
+    EventAdapters: Default,
+{
+    pendings: RefCell<EventCallbackType<Self>>,
+    adapters: EventAdapters,
+}
+
+impl<EventAdapters> EventDispatcher<EventAdapters>
+where
+    EventAdapters: Default,
+{
+    pub fn new() -> std::rc::Rc<Self> {
+        std::rc::Rc::new(Self {
+            pendings: RefCell::new(EventCallbackType::new()),
+            adapters: Default::default(),
+        })
+    }
+
+    pub fn create_connection<EventHandlerType, EventType>(
+        self: &Rc<Self>,
+        handler: &Rc<RefCell<EventHandlerType>>,
+    ) -> Connection<Self, EventAdapters, EventHandlerType, EventType>
+    where
+        EventHandlerType: EventHandler<EventType>,
+        EventAdapters: AccessEventAdapter<EventType>,
+        EventType: 'static,
+    {
+        Connection::new(self, handler)
+    }
+
+    pub fn push<EventType>(self: &Rc<Self>, event: EventType)
+    where
+        EventAdapters: AccessEventAdapter<EventType>,
+        EventType: 'static,
+    {
+        self.pendings
+            .borrow_mut()
+            .push_back(Box::new(move |dispatch| {
+                let adapter = (&dispatch.adapters as &dyn AccessEventAdapter<EventType>).get();
+                adapter.borrow_mut().invoke(&event);
+            }));
+    }
+
+    pub fn dispatch(self: &Rc<Self>) {
+        while let Some(mut event) = self.pop_event_() {
+            (event)(&self);
+        }
+    }
+
+    fn pop_event_(&self) -> Option<Box<dyn FnMut(&Rc<Self>)>> {
+        let mut events = self.pendings.borrow_mut();
+        events.pop_front()
+    }
+}
+
+impl<EventAdapters> Dispatcher<EventAdapters> for EventDispatcher<EventAdapters>
+where
+    EventAdapters: Default,
+{
+    fn connect<EventHandlerType, EventType>(self: &Rc<Self>, handler: Rc<RefCell<EventHandlerType>>)
+    where
+        EventHandlerType: EventHandler<EventType> + 'static,
+        EventAdapters: AccessEventAdapter<EventType>,
+        EventType: 'static,
+    {
+        self.pendings
+            .borrow_mut()
+            .push_back(Box::new(move |dispatch| {
+                let adapter = (&dispatch.adapters as &dyn AccessEventAdapter<EventType>).get();
+                adapter.borrow_mut().connect(handler.clone());
+            }));
+    }
+
+    fn disconnect<EventHandlerType, EventType>(
+        self: &Rc<Self>,
+        handler: Rc<RefCell<EventHandlerType>>,
+    ) where
+        EventHandlerType: EventHandler<EventType> + 'static,
+        EventAdapters: AccessEventAdapter<EventType>,
+        EventType: 'static,
+    {
+        self.pendings
+            .borrow_mut()
+            .push_back(Box::new(move |dispatch| {
+                let adapter = (&dispatch.adapters as &dyn AccessEventAdapter<EventType>).get();
+                adapter.borrow_mut().disconnect(handler.clone());
+            }));
+    }
+}
+
 #[macro_export]
-macro_rules! create_dispatcher {
+macro_rules! create_event_adapters {
     ($name:ident { $($event:ident),* }) => {
         paste::paste! {
             pub struct $name {
-                pendings: std::cell::RefCell<std::collections::VecDeque<Box<dyn FnMut(&std::rc::Rc<$name>)>>>,
-                    $(
-                        [<adp $event:snake>] : std::cell::RefCell<entity_system::Adapter<$event>>,
-                    )*
+                $(
+                [<adp $event:snake>] : std::cell::RefCell<entity_system::Adapter<$event>>,
+                )*
             }
 
             impl $name {
-                pub fn new() -> std::rc::Rc<Self> {
-                    std::rc::Rc::new(Self {
-                        pendings: std::cell::RefCell::new(std::collections::VecDeque::new()),
-                        $(
-                            [<adp $event:snake>] : std::cell::RefCell::new(entity_system::Adapter::new()),
-                        )*
-                    })
-                }
-
-                pub fn create_connection<EventHandlerType, EventType>(
-                    self: &std::rc::Rc<Self>,
-                    handler: &std::rc::Rc<std::cell::RefCell<EventHandlerType>>,
-                ) -> entity_system::Connection<Self, EventHandlerType, EventType>
-                where
-                    EventHandlerType: entity_system::EventHandler<EventType>,
-                    Self: entity_system::AccessEventAdapter<EventType>,
-                    EventType: 'static,
-                {
-                    entity_system::Connection::new(self, handler)
-                }
-
-                pub fn push<EventType>(self: &std::rc::Rc<Self>, event: EventType)
-                where
-                    Self: entity_system::AccessEventAdapter<EventType>,
-                    EventType: 'static,
-                {
-                    self.pendings
-                        .borrow_mut()
-                        .push_back(Box::new(move |dispatch| {
-                            let adapter = (&**dispatch as &dyn entity_system::AccessEventAdapter<EventType>).get();
-                            adapter.borrow_mut().invoke(&event);
-                        }));
-                }
-
-                pub fn dispatch(self: &std::rc::Rc<Self>) {
-                    while let Some(mut event) = self.pop_event_() {
-                        (event)(&self);
+                pub fn new() -> Self {
+                    Self {
+                    $(
+                    [<adp $event:snake>] : std::cell::RefCell::new(entity_system::Adapter::new()),
+                    )*
                     }
-                }
-
-                fn pop_event_(&self) -> Option<Box<dyn FnMut(&std::rc::Rc<Self>)>> {
-                    let mut events = self.pendings.borrow_mut();
-                    events.pop_front()
                 }
             }
 
             $(
-                impl entity_system::AccessEventAdapter<$event> for $name {
-                    fn get(&self) -> &std::cell::RefCell<entity_system::Adapter<$event>> {
-                        &self.[<adp $event:snake>]
-                    }
+            impl entity_system::AccessEventAdapter<$event> for $name {
+                fn get(&self) -> &std::cell::RefCell<entity_system::Adapter<$event>> {
+                    &self.[<adp $event:snake>]
                 }
-            )*
-        }
-
-        impl entity_system::Dispatcher for $name {
-            fn connect<EventHandlerType, EventType>(self: &std::rc::Rc<Self>, handler: std::rc::Rc<std::cell::RefCell<EventHandlerType>>)
-            where
-                EventHandlerType: entity_system::EventHandler<EventType> + 'static,
-                Self: entity_system::AccessEventAdapter<EventType>,
-                EventType: 'static,
-            {
-                self.pendings
-                    .borrow_mut()
-                    .push_back(Box::new(move |dispatch| {
-                        let adapter = (&**dispatch as &dyn entity_system::AccessEventAdapter<EventType>).get();
-                        adapter.borrow_mut().connect(handler.clone());
-                    }));
             }
+            )*
 
-            fn disconnect<EventHandlerType, EventType>(
-                self: &std::rc::Rc<Self>,
-                handler: std::rc::Rc<std::cell::RefCell<EventHandlerType>>,
-            ) where
-                EventHandlerType: entity_system::EventHandler<EventType> + 'static,
-                Self: entity_system::AccessEventAdapter<EventType>,
-                EventType: 'static,
-            {
-                self.pendings
-                    .borrow_mut()
-                    .push_back(Box::new(move |dispatch| {
-                        let adapter = (&**dispatch as &dyn entity_system::AccessEventAdapter<EventType>).get();
-                        adapter.borrow_mut().disconnect(handler.clone());
-                    }));
+            impl Default for $name {
+                fn default() -> Self {
+                    Self::new()
+                }
             }
         }
     };

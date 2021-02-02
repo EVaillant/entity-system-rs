@@ -1,8 +1,10 @@
-use entity_system::create_dispatcher;
+use entity_system::{create_event_adapters, EventDispatcher};
 
 struct Event1(i32);
 struct Event2(i32);
-create_dispatcher!(MyDispatcher1 { Event1, Event2 });
+create_event_adapters!(MyEventAdapters1 { Event1, Event2 });
+
+type MyDispatcher1 = EventDispatcher<MyEventAdapters1>;
 
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -36,8 +38,8 @@ impl entity_system::EventHandler<Event2> for Receiver1 {
 struct Receiver2 {
     event1: u32,
     event2: u32,
-    connection1: entity_system::Connection<MyDispatcher1, Receiver2, Event1>,
-    connection2: entity_system::Connection<MyDispatcher1, Receiver2, Event2>,
+    connection1: entity_system::Connection<MyDispatcher1, MyEventAdapters1, Receiver2, Event1>,
+    connection2: entity_system::Connection<MyDispatcher1, MyEventAdapters1, Receiver2, Event2>,
     dispatcher: Weak<MyDispatcher1>,
 }
 
