@@ -29,6 +29,19 @@ pub trait AccessEventAdapter<EventType> {
     fn get(&self) -> &RefCell<Adapter<EventType>>;
 }
 
+impl<DispatcherType, EventAdapters, EventHandlerType, EventType> Default
+    for Connection<DispatcherType, EventAdapters, EventHandlerType, EventType>
+where
+    EventType: 'static,
+    EventHandlerType: EventHandler<EventType> + 'static,
+    DispatcherType: Dispatcher<EventAdapters>,
+    EventAdapters: AccessEventAdapter<EventType>,
+{
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
 pub struct Connection<DispatcherType, EventAdapters, EventHandlerType, EventType>
 where
     EventType: 'static,
@@ -85,6 +98,7 @@ where
     }
 }
 
+#[derive(Default)]
 pub struct Adapter<EventType> {
     handlers: Vec<Rc<RefCell<dyn EventHandler<EventType>>>>,
 }
@@ -114,12 +128,6 @@ impl<EventType> Adapter<EventType> {
         for handler in self.handlers.iter() {
             handler.borrow_mut().on_event(event);
         }
-    }
-}
-
-impl<EventType> Default for Adapter<EventType> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

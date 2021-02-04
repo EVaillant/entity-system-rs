@@ -1,10 +1,11 @@
-use entity_system::{create_event_adapters, EventDispatcher};
+use entity_system::{create_event_adapters, Connection, EventDispatcher, EventHandler};
 
 struct Event1(i32);
 struct Event2(i32);
 create_event_adapters!(MyEventAdapters1 { Event1, Event2 });
 
 type MyDispatcher1 = EventDispatcher<MyEventAdapters1>;
+type MyConnection1<Receiver, Event> = Connection<MyDispatcher1, MyEventAdapters1, Receiver, Event>;
 
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -23,13 +24,13 @@ impl Receiver1 {
     }
 }
 
-impl entity_system::EventHandler<Event1> for Receiver1 {
+impl EventHandler<Event1> for Receiver1 {
     fn on_event(&mut self, _event: &Event1) {
         self.event1 += 1;
     }
 }
 
-impl entity_system::EventHandler<Event2> for Receiver1 {
+impl EventHandler<Event2> for Receiver1 {
     fn on_event(&mut self, _event: &Event2) {
         self.event2 += 1;
     }
@@ -38,8 +39,8 @@ impl entity_system::EventHandler<Event2> for Receiver1 {
 struct Receiver2 {
     event1: u32,
     event2: u32,
-    connection1: entity_system::Connection<MyDispatcher1, MyEventAdapters1, Receiver2, Event1>,
-    connection2: entity_system::Connection<MyDispatcher1, MyEventAdapters1, Receiver2, Event2>,
+    connection1: MyConnection1<Self, Event1>,
+    connection2: MyConnection1<Self, Event2>,
     dispatcher: Weak<MyDispatcher1>,
 }
 
@@ -48,8 +49,8 @@ impl Receiver2 {
         let instance = Rc::new(RefCell::new(Self {
             event1: 0,
             event2: 0,
-            connection1: entity_system::Connection::empty(),
-            connection2: entity_system::Connection::empty(),
+            connection1: Default::default(),
+            connection2: Default::default(),
             dispatcher: Rc::downgrade(dispatcher),
         }));
 
@@ -63,7 +64,7 @@ impl Receiver2 {
     }
 }
 
-impl entity_system::EventHandler<Event1> for Receiver2 {
+impl EventHandler<Event1> for Receiver2 {
     fn on_event(&mut self, _event: &Event1) {
         self.event1 += 1;
         self.connection1.disconnect();
@@ -74,7 +75,7 @@ impl entity_system::EventHandler<Event1> for Receiver2 {
     }
 }
 
-impl entity_system::EventHandler<Event2> for Receiver2 {
+impl EventHandler<Event2> for Receiver2 {
     fn on_event(&mut self, _event: &Event2) {
         self.event2 += 1;
         self.connection2.disconnect();
