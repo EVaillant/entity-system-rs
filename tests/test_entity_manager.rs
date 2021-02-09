@@ -35,21 +35,13 @@ fn test_entity_manager_01() {
     assert!(entity_manager.has_composant::<Position>(e));
     assert!(!entity_manager.has_composant::<Velocity>(e));
 
-    {
-        let position = entity_manager.get_composant::<Position>(e);
-        assert!(position.is_some());
-        let velocity = entity_manager.get_composant::<Velocity>(e);
-        assert!(velocity.is_none());
-    }
-
-    {
-        let mut position = entity_manager.get_composant_mut::<Position>(e).unwrap();
+    entity_manager.update_composant_with::<Position, _>(e, |position| {
         position.x = 5;
         position.y = 6;
-    }
+    });
 
     {
-        let position = entity_manager.get_composant::<Position>(e).unwrap();
+        let position = entity_manager.get_composant::<Position>(e);
         assert_eq!(position.x, 5);
         assert_eq!(position.y, 6);
     }
@@ -59,21 +51,13 @@ fn test_entity_manager_01() {
     assert!(!entity_manager.has_composant::<Position>(e));
     assert!(entity_manager.has_composant::<Velocity>(e));
 
-    {
-        let position = entity_manager.get_composant::<Position>(e);
-        assert!(position.is_none());
-        let velocity = entity_manager.get_composant::<Velocity>(e);
-        assert!(velocity.is_some());
-    }
-
-    {
-        let mut velocity = entity_manager.get_composant_mut::<Velocity>(e).unwrap();
+    entity_manager.update_composant_with::<Velocity, _>(e, |velocity| {
         velocity.x = 5;
         velocity.y = 6;
-    }
+    });
 
     {
-        let velocity = entity_manager.get_composant::<Velocity>(e).unwrap();
+        let velocity = entity_manager.get_composant::<Velocity>(e);
         assert_eq!(velocity.x, 5);
         assert_eq!(velocity.y, 6);
     }
@@ -128,8 +112,9 @@ fn test_entity_manager_02() {
     }
 
     {
-        let mut position = entity_manager.get_composant_mut::<Position>(e1).unwrap();
-        position.x = 5;
+        entity_manager.update_composant_with::<Position, _>(e1, |position| {
+            position.x = 5;
+        });
 
         let mut query = Query::new();
         query.check_composant_by::<Position, _>(|position| -> bool { position.x > 2 });

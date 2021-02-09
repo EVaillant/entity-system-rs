@@ -1,14 +1,14 @@
 use crate::entity::{Entity, EntityAllocator, EntityAllocatorIterator};
 use crate::storage::Storage;
+use std::cell::{Ref, RefMut};
 
 #[macro_export]
 macro_rules! create_entity_manager_composant {
     ($name:ident { $($composant:ident),* }) => {
         paste::paste! {
-            #[derive(Default)]
             pub struct $name {
                 $(
-                [<cpt $composant:snake>]: <$composant as Composant>::Storage,
+                [<cpt $composant:snake>]: std::cell::RefCell<<$composant as entity_system::Composant>::Storage>,
                 )*
             }
 
@@ -16,19 +16,29 @@ macro_rules! create_entity_manager_composant {
                 fn free(&mut self, entity: entity_system::Entity) {
                     use entity_system::Storage;
                     $(
-                    self.[<cpt $composant:snake>].free(entity);
+                    self.[<cpt $composant:snake>].borrow_mut().free(entity);
                     )*
+                }
+            }
+
+            impl Default for $name {
+                fn default() -> Self {
+                    Self {
+                        $(
+                        [<cpt $composant:snake>]: std::cell::RefCell::new(Default::default()),
+                        )*
+                    }
                 }
             }
 
             $(
             impl entity_system::StorageAccess<$composant> for $name {
-                fn get(&self) -> &dyn entity_system::Storage<$composant> {
-                    &self.[<cpt $composant:snake>]
+                fn get(&self) -> std::cell::Ref<dyn entity_system::Storage<$composant>> {
+                    self.[<cpt $composant:snake>].borrow()
                 }
 
-                fn get_mut(&mut self) -> &mut dyn entity_system::Storage<$composant> {
-                    &mut self.[<cpt $composant:snake>]
+                fn get_mut(&self) -> std::cell::RefMut<dyn entity_system::Storage<$composant>> {
+                    self.[<cpt $composant:snake>].borrow_mut()
                 }
             }
             )*
@@ -41,8 +51,8 @@ pub trait Composant {
 }
 
 pub trait StorageAccess<T> {
-    fn get(&self) -> &dyn Storage<T>;
-    fn get_mut(&mut self) -> &mut dyn Storage<T>;
+    fn get(&self) -> Ref<dyn Storage<T>>;
+    fn get_mut(&self) -> RefMut<dyn Storage<T>>;
 }
 
 pub trait EntityManagerComposant {
@@ -82,7 +92,16 @@ where
     where
         EntityManagerComposantType: StorageAccess<T>,
     {
-        self.get_storage_mut().alloc(entity)
+        self.get_storage_mut().alloc(entity);
+    }
+
+    pub fn add_composant_with<T, F>(&mut self, entity: Entity, f: F)
+    where
+        EntityManagerComposantType: StorageAccess<T>,
+        F: FnOnce(&mut T),
+    {
+        self.get_storage_mut().alloc(entity);
+        self.update_composant_with(entity, f);
     }
 
     pub fn remove_composant<T>(&mut self, entity: Entity)
@@ -99,18 +118,28 @@ where
         self.get_storage().has(entity)
     }
 
-    pub fn get_composant<T>(&self, entity: Entity) -> Option<&T>
+    pub fn get_composant<T>(&self, entity: Entity) -> Ref<T>
     where
         EntityManagerComposantType: StorageAccess<T>,
     {
-        self.get_storage().get(entity)
+        Ref::map(self.get_storage(), |storage| storage.get(entity).unwrap())
     }
 
-    pub fn get_composant_mut<T>(&mut self, entity: Entity) -> Option<&mut T>
+    pub fn get_composant_mut<T>(&self, entity: Entity) -> RefMut<T>
     where
         EntityManagerComposantType: StorageAccess<T>,
     {
-        self.get_storage_mut().get_mut(entity)
+        RefMut::map(self.get_storage_mut(), |storage| {
+            storage.get_mut(entity).unwrap()
+        })
+    }
+
+    pub fn update_composant_with<T, F>(&self, entity: Entity, f: F)
+    where
+        EntityManagerComposantType: StorageAccess<T>,
+        F: FnOnce(&mut T),
+    {
+        f(&mut *self.get_composant_mut::<T>(entity));
     }
 
     pub fn iter<'a>(
@@ -124,14 +153,14 @@ where
         self.allocator.iter()
     }
 
-    fn get_storage<T>(&self) -> &dyn Storage<T>
+    fn get_storage<T>(&self) -> Ref<dyn Storage<T>>
     where
         EntityManagerComposantType: StorageAccess<T>,
     {
         self.composants.get()
     }
 
-    fn get_storage_mut<T>(&mut self) -> &mut dyn Storage<T>
+    fn get_storage_mut<T>(&self) -> RefMut<dyn Storage<T>>
     where
         EntityManagerComposantType: StorageAccess<T>,
     {
@@ -253,9 +282,11 @@ where
     {
         self.filters
             .push(Box::new(move |entity_manager, entity| -> bool {
-                match entity_manager.get_composant::<C>(entity) {
-                    Some(composant) => (f)(composant),
-                    None => false,
+                if entity_manager.has_composant::<C>(entity) {
+                    let compostant = entity_manager.get_composant::<C>(entity);
+                    f(&*compostant)
+                } else {
+                    false
                 }
             }));
         self
