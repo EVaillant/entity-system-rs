@@ -96,7 +96,7 @@ where
         self.composants.free(entity);
     }
 
-    pub fn add_composant<T>(&mut self, entity: Entity)
+    pub fn add_composant<T>(&self, entity: Entity)
     where
         EntityManagerComposantType: StorageAccess<T>,
         T: Composant,
@@ -105,7 +105,7 @@ where
         self.get_storage_mut().alloc(entity);
     }
 
-    pub fn add_composant_with<T, F>(&mut self, entity: Entity, f: F)
+    pub fn add_composant_with<T, F>(&self, entity: Entity, f: F)
     where
         EntityManagerComposantType: StorageAccess<T>,
         T: Composant,
@@ -116,7 +116,7 @@ where
         self.update_composant_with(entity, f);
     }
 
-    pub fn remove_composant<T>(&mut self, entity: Entity)
+    pub fn remove_composant<T>(&self, entity: Entity)
     where
         EntityManagerComposantType: StorageAccess<T>,
         T: Composant,
