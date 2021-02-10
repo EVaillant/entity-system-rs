@@ -1,4 +1,4 @@
-use cgmath::{prelude::*, Matrix3, Rad, Vector2, Vector3};
+use cgmath::{prelude::*, Deg, Matrix3, Vector2, Vector3};
 
 extern crate sdl2;
 
@@ -11,14 +11,14 @@ use std::time::Duration;
 
 struct Position {
     position: Vector2<f32>,
-    angle: Rad<f32>,
+    angle: Deg<f32>,
 }
 
 impl Default for Position {
     fn default() -> Self {
         Self {
             position: Vector2::new(0.0, 0.0),
-            angle: Rad::zero(),
+            angle: Deg::zero(),
         }
     }
 }
@@ -37,14 +37,14 @@ impl entity_system::Composant for Position {
 
 struct Velocity {
     position: Vector2<f32>,
-    angle: Rad<f32>,
+    angle: Deg<f32>,
 }
 
 impl Default for Velocity {
     fn default() -> Self {
         Self {
             position: Vector2::new(0.0, 0.0),
-            angle: Rad::zero(),
+            angle: Deg::zero(),
         }
     }
 }
@@ -53,10 +53,12 @@ impl entity_system::Composant for Velocity {
     type Storage = entity_system::BasicVecStorage<Self>;
 }
 
+#[derive(PartialEq)]
 enum Shape {
     Circle,
     Square,
     Triangle,
+    Bullet,
 }
 
 impl Default for Shape {
@@ -74,18 +76,44 @@ entity_system::create_entity_manager_composant!(EMC {
     Velocity,
     Shape
 });
+
 type EntityManager = entity_system::EntityManager<EMC>;
 type Query = entity_system::Query<EMC>;
+type Entity = entity_system::Entity;
+
+fn update_velocity_angle(
+    entity_manager: &mut EntityManager,
+    entity: Entity,
+    delta_angle: Deg<f32>,
+) {
+    entity_manager.update_composant_with::<Velocity, _>(entity, |velocity| {
+        velocity.angle += delta_angle;
+    });
+}
+
+fn update_velocity_position(
+    entity_manager: &mut EntityManager,
+    entity: Entity,
+    delta_position: Vector2<f32>,
+) {
+    let position = entity_manager.get_composant::<Position>(entity);
+    let delta = (Matrix3::from_angle_z(position.angle) * delta_position.extend(1.0)).truncate();
+    entity_manager.update_composant_with::<Velocity, _>(entity, |velocity| {
+        velocity.position += delta;
+        velocity.position.x = velocity.position.x.min(5.0).max(-5.0);
+        velocity.position.y = velocity.position.y.min(5.0).max(-5.0);
+    });
+}
 
 fn main() -> Result<(), String> {
     let mut entity_manager = EntityManager::new();
-    for i in 0..10 {
+    for i in 0..20 {
         let entity = entity_manager.create_entity();
 
         entity_manager.add_composant_with::<Position, _>(entity, |position| {
             position.position.x = rand::random::<f32>() * 800.0;
             position.position.y = rand::random::<f32>() * 600.0;
-            position.angle = Rad(rand::random::<f32>() * std::f32::consts::PI * 2.0);
+            position.angle = Deg(rand::random::<f32>() * 360.0);
         });
 
         entity_manager.add_composant_with::<Shape, _>(entity, |shape| {
@@ -97,25 +125,19 @@ fn main() -> Result<(), String> {
         });
     }
 
-    {
-        let entity = entity_manager.create_entity();
+    let starship_entity = entity_manager.create_entity();
 
-        entity_manager.add_composant_with::<Position, _>(entity, |position| {
-            position.position.x = 400.0;
-            position.position.y = 300.0;
-            position.angle = Rad::zero();
-        });
+    entity_manager.add_composant_with::<Position, _>(starship_entity, |position| {
+        position.position.x = 400.0;
+        position.position.y = 300.0;
+        position.angle = Deg::zero();
+    });
 
-        entity_manager.add_composant_with::<Shape, _>(entity, |shape| {
-            *shape = Shape::Triangle;
-        });
+    entity_manager.add_composant_with::<Shape, _>(starship_entity, |shape| {
+        *shape = Shape::Triangle;
+    });
 
-        entity_manager.add_composant_with::<Velocity, _>(entity, |velocity| {
-            velocity.position.x = 4.0;
-            velocity.position.y = 3.0;
-            velocity.angle = Rad(1.0);
-        });
-    }
+    entity_manager.add_composant::<Velocity>(starship_entity);
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -133,19 +155,85 @@ fn main() -> Result<(), String> {
         .check_composant::<Shape>()
         .check_composant::<Position>();
 
+    let mut query_bullet = Query::new();
+    query_bullet
+        .check_composant_by::<Shape, _>(|shape| -> bool { *shape == Shape::Bullet })
+        .check_composant::<Position>();
+
+    let mut query_target = Query::new();
+    query_target
+        .check_composant_by::<Shape, _>(|shape| -> bool {
+            *shape == Shape::Square || *shape == Shape::Circle
+        })
+        .check_composant::<Position>();
+
     let mut query_velocity = Query::new();
     query_velocity
         .check_composant::<Velocity>()
         .check_composant::<Position>();
 
     'mainloop: loop {
-        if let Some(event) = event_pump.poll_event() {
+        while let Some(event) = event_pump.poll_event() {
             match event {
                 Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
                 }
                 | Event::Quit { .. } => break 'mainloop,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Up),
+                    ..
+                } => {
+                    update_velocity_position(
+                        &mut entity_manager,
+                        starship_entity,
+                        Vector2::new(0.0, 1.0),
+                    );
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Down),
+                    ..
+                } => {
+                    update_velocity_position(
+                        &mut entity_manager,
+                        starship_entity,
+                        Vector2::new(0.0, -1.0),
+                    );
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Right),
+                    ..
+                } => {
+                    update_velocity_angle(&mut entity_manager, starship_entity, Deg(5.0));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Left),
+                    ..
+                } => {
+                    update_velocity_angle(&mut entity_manager, starship_entity, Deg(-5.0));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Space),
+                    ..
+                } => {
+                    let bullet = entity_manager.create_entity();
+                    let matrix = entity_manager
+                        .get_composant::<Position>(starship_entity)
+                        .get_matrix();
+                    let center_pos = (matrix * Vector3::new(0.0, 0.0, 1.0)).truncate();
+                    let start_pos = (matrix * Vector3::new(0.0, 10.0, 1.0)).truncate();
+                    entity_manager.add_composant_with::<Position, _>(bullet, |position| {
+                        position.position = start_pos;
+                    });
+
+                    entity_manager.add_composant_with::<Velocity, _>(bullet, |velocity| {
+                        velocity.position = (start_pos - center_pos).normalize() * 6.0;
+                    });
+
+                    entity_manager.add_composant_with::<Shape, _>(bullet, |shape| {
+                        *shape = Shape::Bullet;
+                    });
+                }
                 _ => {}
             }
         }
@@ -159,6 +247,26 @@ fn main() -> Result<(), String> {
                 position.angle += velocity.angle;
             });
         }
+
+        let mut delete_entities = Vec::new();
+        for bullet_entity in entity_manager.iter(&query_bullet) {
+            let bullet_position = entity_manager
+                .get_composant::<Position>(bullet_entity)
+                .position;
+            for target_entity in entity_manager.iter(&query_target) {
+                let target_position = entity_manager
+                    .get_composant::<Position>(target_entity)
+                    .position;
+                if (target_position - bullet_position).magnitude() < 10.0 {
+                    delete_entities.push(target_entity);
+                    delete_entities.push(bullet_entity);
+                }
+            }
+        }
+
+        delete_entities.iter().for_each(|entity| {
+            entity_manager.delete_entity(*entity);
+        });
 
         canvas.set_draw_color(Color::BLACK);
         canvas.clear();
@@ -175,12 +283,19 @@ fn main() -> Result<(), String> {
                         Color::WHITE,
                     )?;
                 }
+                Shape::Bullet => {
+                    canvas.pixel(
+                        position.position.x as i16,
+                        position.position.y as i16,
+                        Color::WHITE,
+                    )?;
+                }
                 Shape::Square => {
                     let matrix = position.get_matrix();
-                    let p1 = matrix * Vector3::new(0.0, 0.0, 1.0);
-                    let p2 = matrix * Vector3::new(0.0, 20.0, 1.0);
-                    let p3 = matrix * Vector3::new(20.0, 20.0, 1.0);
-                    let p4 = matrix * Vector3::new(20.0, 0.0, 1.0);
+                    let p1 = matrix * Vector3::new(-10.0, -10.0, 1.0);
+                    let p2 = matrix * Vector3::new(-10.0, 10.0, 1.0);
+                    let p3 = matrix * Vector3::new(10.0, 10.0, 1.0);
+                    let p4 = matrix * Vector3::new(10.0, -10.0, 1.0);
                     canvas.polygon(
                         &[p1.x as i16, p2.x as i16, p3.x as i16, p4.x as i16],
                         &[p1.y as i16, p2.y as i16, p3.y as i16, p4.y as i16],
@@ -189,9 +304,9 @@ fn main() -> Result<(), String> {
                 }
                 Shape::Triangle => {
                     let matrix = position.get_matrix();
-                    let p1 = matrix * Vector3::new(0.0, 0.0, 1.0);
-                    let p2 = matrix * Vector3::new(10.0, 20.0, 1.0);
-                    let p3 = matrix * Vector3::new(20.0, 0.0, 1.0);
+                    let p1 = matrix * Vector3::new(0.0, 10.0, 1.0);
+                    let p2 = matrix * Vector3::new(-8.0, -6.0, 1.0);
+                    let p3 = matrix * Vector3::new(8.0, -6.0, 1.0);
                     canvas.polygon(
                         &[p1.x as i16, p2.x as i16, p3.x as i16],
                         &[p1.y as i16, p2.y as i16, p3.y as i16],
@@ -201,6 +316,8 @@ fn main() -> Result<(), String> {
             }
         }
         canvas.present();
+
+        // 30 img/sec
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
     }
 
