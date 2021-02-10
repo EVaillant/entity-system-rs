@@ -151,15 +151,16 @@ fn main() -> Result<(), String> {
         }
 
         for entity in entity_manager.iter(&query_velocity) {
-            let velocity = entity_manager.get_composant::<Velocity>(entity);
             entity_manager.update_composant_with::<Position, _>(entity, |position| {
+                let velocity = entity_manager.get_composant::<Velocity>(entity);
+
                 position.position.x += velocity.position.x;
                 position.position.y += velocity.position.y;
                 position.angle += velocity.angle;
             });
         }
 
-        canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
+        canvas.set_draw_color(Color::BLACK);
         canvas.clear();
 
         for entity in entity_manager.iter(&query_drawable) {

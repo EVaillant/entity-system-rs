@@ -1,6 +1,10 @@
 # Entity System Composant in Rust
 ![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg) ![CI](https://github.com/EVaillant/entity-system-rs/workflows/CI/badge.svg)
 
+### Documentation
+
+- [master documentation](https://evaillant.github.io/entity-system-rs/doc/api/entity_system/index.html).
+
 ### Inspiration & Related Projects
 
 - [Building a parallel ECS in Rust](http://kvark.github.io/ecs/rust/2017/03/08/specs.html)

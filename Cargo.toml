@@ -11,6 +11,7 @@ homepage = "https://github.com/EVaillant/entity-system-rs"
 repository = "https://github.com/EVaillant/entity-system-rs"
 keywords = ["esc"]
 categories = []
+exclude = ["doc/api/*"]
 
 [dependencies]
 paste = "1.0"

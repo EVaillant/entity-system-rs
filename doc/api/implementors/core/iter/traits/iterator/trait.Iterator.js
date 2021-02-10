@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["entity_system"] = [{"text":"impl&lt;'a&gt; Iterator for EntityAllocatorIterator&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a, EntityManagerComposantType&gt; Iterator for EntityIterator&lt;'a, EntityManagerComposantType&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;EntityManagerComposantType: EntityManagerComposant + Default,&nbsp;</span>","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
