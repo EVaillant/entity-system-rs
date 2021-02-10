@@ -1,6 +1,18 @@
 # Entity System Composant in Rust
 ![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg) ![CI](https://github.com/EVaillant/entity-system-rs/workflows/CI/badge.svg)
 
+### Usage
+
+**Not yet publish on https://crates.io/**
+
+```toml
+[dependencies]
+entity_system = "0.1"
+```
+```rust
+extern crate entity_system;
+```
+
 ### Documentation
 
 - [master documentation](https://evaillant.github.io/entity-system-rs/doc/api/entity_system/index.html).

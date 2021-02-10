@@ -303,6 +303,38 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">entity</span>::{<span class="ident">Entity</span>, <span class="ident">EntityAllocator</span>, <span class="ident">EntityAllocatorIterator</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">storage</span>::<span class="ident">Storage</span>;
@@ -338,12 +370,16 @@
             }
 
             $(
-            <span class="kw">impl</span> <span class="ident">entity_system</span>::<span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">entity_system</span>::<span class="ident">Storage</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="kw">impl</span> <span class="ident">entity_system</span>::<span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+            <span class="kw">where</span>
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span> : <span class="ident">entity_system</span>::<span class="ident">Composant</span>,
+                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span> <span class="kw">as</span> <span class="ident">entity_system</span>::<span class="ident">Composant</span><span class="op">&gt;</span>::<span class="ident">Storage</span> : <span class="ident">entity_system</span>::<span class="ident">Storage</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span><span class="op">&gt;</span>,
+            {
+                <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">Ref</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span> <span class="kw">as</span> <span class="ident">entity_system</span>::<span class="ident">Composant</span><span class="op">&gt;</span>::<span class="ident">Storage</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.[<span class="op">&lt;</span><span class="ident">cpt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span>:<span class="ident">snake</span><span class="op">&gt;</span>].<span class="ident">borrow</span>()
                 }
 
-                <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">entity_system</span>::<span class="ident">Storage</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefMut</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span> <span class="kw">as</span> <span class="ident">entity_system</span>::<span class="ident">Composant</span><span class="op">&gt;</span>::<span class="ident">Storage</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.[<span class="op">&lt;</span><span class="ident">cpt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">composant</span>:<span class="ident">snake</span><span class="op">&gt;</span>].<span class="ident">borrow_mut</span>()
                 }
             }
@@ -356,9 +392,13 @@
     <span class="kw">type</span> <span class="ident">Storage</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Composant</span>,
+    <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Storage</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Storage</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EntityManagerComposant</span> {
@@ -397,6 +437,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_composant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>)
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">get_storage_mut</span>().<span class="ident">alloc</span>(<span class="ident">entity</span>);
     }
@@ -404,6 +446,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_composant_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>, <span class="ident">f</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>),
     {
         <span class="self">self</span>.<span class="ident">get_storage_mut</span>().<span class="ident">alloc</span>(<span class="ident">entity</span>);
@@ -413,6 +457,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_composant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>)
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">get_storage_mut</span>().<span class="ident">free</span>(<span class="ident">entity</span>)
     }
@@ -420,6 +466,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_composant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">get_storage</span>().<span class="ident">has</span>(<span class="ident">entity</span>)
     }
@@ -427,6 +475,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_composant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">Ref</span>::<span class="ident">map</span>(<span class="self">self</span>.<span class="ident">get_storage</span>(), <span class="op">|</span><span class="ident">storage</span><span class="op">|</span> <span class="ident">storage</span>.<span class="ident">get</span>(<span class="ident">entity</span>).<span class="ident">unwrap</span>())
     }
@@ -434,6 +484,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_composant_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">RefMut</span>::<span class="ident">map</span>(<span class="self">self</span>.<span class="ident">get_storage_mut</span>(), <span class="op">|</span><span class="ident">storage</span><span class="op">|</span> {
             <span class="ident">storage</span>.<span class="ident">get_mut</span>(<span class="ident">entity</span>).<span class="ident">unwrap</span>()
@@ -443,6 +495,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_composant_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">entity</span>: <span class="ident">Entity</span>, <span class="ident">f</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>),
     {
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">get_composant_mut</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">entity</span>));
@@ -459,16 +513,20 @@
         <span class="self">self</span>.<span class="ident">allocator</span>.<span class="ident">iter</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">get_storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Composant</span><span class="op">&gt;</span>::<span class="ident">Storage</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">composants</span>.<span class="ident">get</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_storage_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">get_storage_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Composant</span><span class="op">&gt;</span>::<span class="ident">Storage</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Composant</span>,
+        <span class="ident">T</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">composants</span>.<span class="ident">get_mut</span>()
     }
@@ -562,6 +620,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_composant</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Composant</span>,
+        <span class="ident">C</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">filters</span>
             .<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">entity_manager</span>, <span class="ident">entity</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -573,6 +633,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_not_composant</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Composant</span>,
+        <span class="ident">C</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">filters</span>
             .<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">entity_manager</span>, <span class="ident">entity</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -584,6 +646,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_composant_by</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">EntityManagerComposantType</span>: <span class="ident">StorageAccess</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Composant</span>,
+        <span class="ident">C</span>::<span class="ident">Storage</span>: <span class="ident">Storage</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">filters</span>

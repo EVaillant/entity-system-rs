@@ -32,12 +32,16 @@ macro_rules! create_entity_manager_composant {
             }
 
             $(
-            impl entity_system::StorageAccess<$composant> for $name {
-                fn get(&self) -> std::cell::Ref<dyn entity_system::Storage<$composant>> {
+            impl entity_system::StorageAccess<$composant> for $name
+            where
+                $composant : entity_system::Composant,
+                <$composant as entity_system::Composant>::Storage : entity_system::Storage<$composant>,
+            {
+                fn get(&self) -> std::cell::Ref<<$composant as entity_system::Composant>::Storage> {
                     self.[<cpt $composant:snake>].borrow()
                 }
 
-                fn get_mut(&self) -> std::cell::RefMut<dyn entity_system::Storage<$composant>> {
+                fn get_mut(&self) -> std::cell::RefMut<<$composant as entity_system::Composant>::Storage> {
                     self.[<cpt $composant:snake>].borrow_mut()
                 }
             }
@@ -50,9 +54,13 @@ pub trait Composant {
     type Storage;
 }
 
-pub trait StorageAccess<T> {
-    fn get(&self) -> Ref<dyn Storage<T>>;
-    fn get_mut(&self) -> RefMut<dyn Storage<T>>;
+pub trait StorageAccess<T>
+where
+    T: Composant,
+    T::Storage: Storage<T>,
+{
+    fn get(&self) -> Ref<T::Storage>;
+    fn get_mut(&self) -> RefMut<T::Storage>;
 }
 
 pub trait EntityManagerComposant {
@@ -91,6 +99,8 @@ where
     pub fn add_composant<T>(&mut self, entity: Entity)
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         self.get_storage_mut().alloc(entity);
     }
@@ -98,6 +108,8 @@ where
     pub fn add_composant_with<T, F>(&mut self, entity: Entity, f: F)
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
         F: FnOnce(&mut T),
     {
         self.get_storage_mut().alloc(entity);
@@ -107,6 +119,8 @@ where
     pub fn remove_composant<T>(&mut self, entity: Entity)
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         self.get_storage_mut().free(entity)
     }
@@ -114,6 +128,8 @@ where
     pub fn has_composant<T>(&self, entity: Entity) -> bool
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         self.get_storage().has(entity)
     }
@@ -121,6 +137,8 @@ where
     pub fn get_composant<T>(&self, entity: Entity) -> Ref<T>
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         Ref::map(self.get_storage(), |storage| storage.get(entity).unwrap())
     }
@@ -128,6 +146,8 @@ where
     pub fn get_composant_mut<T>(&self, entity: Entity) -> RefMut<T>
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         RefMut::map(self.get_storage_mut(), |storage| {
             storage.get_mut(entity).unwrap()
@@ -137,6 +157,8 @@ where
     pub fn update_composant_with<T, F>(&self, entity: Entity, f: F)
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
         F: FnOnce(&mut T),
     {
         f(&mut *self.get_composant_mut::<T>(entity));
@@ -153,16 +175,20 @@ where
         self.allocator.iter()
     }
 
-    fn get_storage<T>(&self) -> Ref<dyn Storage<T>>
+    fn get_storage<T>(&self) -> Ref<<T as Composant>::Storage>
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         self.composants.get()
     }
 
-    fn get_storage_mut<T>(&self) -> RefMut<dyn Storage<T>>
+    fn get_storage_mut<T>(&self) -> RefMut<<T as Composant>::Storage>
     where
         EntityManagerComposantType: StorageAccess<T>,
+        T: Composant,
+        T::Storage: Storage<T>,
     {
         self.composants.get_mut()
     }
@@ -256,6 +282,8 @@ where
     pub fn check_composant<C>(&mut self) -> &mut Self
     where
         EntityManagerComposantType: StorageAccess<C>,
+        C: Composant,
+        C::Storage: Storage<C>,
     {
         self.filters
             .push(Box::new(|entity_manager, entity| -> bool {
@@ -267,6 +295,8 @@ where
     pub fn check_not_composant<C>(&mut self) -> &mut Self
     where
         EntityManagerComposantType: StorageAccess<C>,
+        C: Composant,
+        C::Storage: Storage<C>,
     {
         self.filters
             .push(Box::new(|entity_manager, entity| -> bool {
@@ -278,6 +308,8 @@ where
     pub fn check_composant_by<C, F>(&mut self, f: F) -> &mut Self
     where
         EntityManagerComposantType: StorageAccess<C>,
+        C: Composant,
+        C::Storage: Storage<C>,
         F: Fn(&C) -> bool + 'static,
     {
         self.filters
