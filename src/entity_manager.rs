@@ -140,7 +140,7 @@ where
         T: Composant,
         T::Storage: Storage<T>,
     {
-        Ref::map(self.get_storage(), |storage| storage.get(entity).unwrap())
+        Ref::map(self.get_storage(), |storage| storage.get(entity))
     }
 
     pub fn get_composant_mut<T>(&self, entity: Entity) -> RefMut<T>
@@ -150,7 +150,7 @@ where
         T::Storage: Storage<T>,
     {
         RefMut::map(self.get_storage_mut(), |storage| {
-            storage.get_mut(entity).unwrap()
+            storage.get_mut(entity)
         })
     }
 

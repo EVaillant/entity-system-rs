@@ -3,8 +3,8 @@ use crate::entity::Entity;
 pub trait Storage<T> {
     fn alloc(&mut self, entity: Entity);
     fn free(&mut self, entity: Entity);
-    fn get(&self, entity: Entity) -> Option<&T>;
-    fn get_mut(&mut self, entity: Entity) -> Option<&mut T>;
+    fn get(&self, entity: Entity) -> &T;
+    fn get_mut(&mut self, entity: Entity) -> &mut T;
     fn has(&self, entity: Entity) -> bool;
 }
 
@@ -38,21 +38,21 @@ where
         }
     }
 
-    fn get(&self, entity: Entity) -> Option<&T> {
+    fn get(&self, entity: Entity) -> &T {
         let pos = entity.id as usize;
         if pos < self.datas.len() && self.alloc[pos] {
-            self.datas.get(pos)
+            self.datas.get(pos).unwrap()
         } else {
-            None
+            panic!("index is out of bounds or not allocated");
         }
     }
 
-    fn get_mut(&mut self, entity: Entity) -> Option<&mut T> {
+    fn get_mut(&mut self, entity: Entity) -> &mut T {
         let pos = entity.id as usize;
         if pos < self.datas.len() && self.alloc[pos] {
-            self.datas.get_mut(pos)
+            self.datas.get_mut(pos).unwrap()
         } else {
-            None
+            panic!("index is out of bounds or not allocated");
         }
     }
 
