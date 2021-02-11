@@ -52,7 +52,7 @@ macro_rules! create_entity_manager_component {
 
 ///
 /// Abstract component type.
-/// 
+///
 /// ## Storages
 ///
 /// Components are stored in separated collections for maximum
@@ -62,18 +62,18 @@ macro_rules! create_entity_manager_component {
 /// often it is accessed, you will want different storages.
 ///
 /// The most common ones are `BasicVecStorage`.
-/// 
+///
 /// ## Examples
 /// ```rust
 /// use entity_system::Component;
 /// use entity_system::BasicVecStorage;
-/// 
+///
 /// #[derive(Default)]
 /// pub struct Position {
 ///     pub x: f32,
 ///     pub y: f32,
 /// }
-/// 
+///
 /// impl Component for Position {
 ///     type Storage = BasicVecStorage<Self>;
 /// }
@@ -91,17 +91,17 @@ where
 {
     ///
     /// Return ref on Storage
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If Storage could be borrow.
     fn get(&self) -> Ref<T::Storage>;
 
     ///
     /// Return ref mut on Storage
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If Storage could be borrow mut.
     fn get_mut(&self) -> RefMut<T::Storage>;
 }
@@ -116,21 +116,21 @@ pub trait EntityManagerComponent {
 
 ///
 /// Manage (create, delete, update, iter...) Entities.
-/// 
+///
 /// ## Examples
 /// ```rust
 /// use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-/// 
+///
 /// #[derive(Default)]
 /// pub struct Position {
 ///     pub x: f32,
 ///     pub y: f32,
 /// }
-/// 
+///
 /// impl Component for Position {
 ///     type Storage = BasicVecStorage<Self>;
 /// }
-/// 
+///
 /// create_entity_manager_component!(EMC { Position });
 /// type EntityManager = entity_system::EntityManager<EMC>;
 /// ```
@@ -152,20 +152,20 @@ where
     /// ## Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let entity_manager = EntityManager::new();
     /// ```
     pub fn new() -> Self {
@@ -177,24 +177,24 @@ where
 
     ///
     /// Create new entity.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();
     /// ```
@@ -204,31 +204,31 @@ where
 
     ///
     /// Delete an entity.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();
-    /// 
+    ///
     /// //
     /// // lot of things
     /// //
-    /// 
+    ///
     /// entity_manager.delete_entity(entity);
     /// ```
     pub fn delete_entity(&mut self, entity: Entity) {
@@ -238,27 +238,27 @@ where
 
     ///
     /// Add component to an entity. The component is initialized with default value.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();
-    /// 
+    ///
     /// entity_manager.add_component::<Position>(entity);
     /// ```
     pub fn add_component<T>(&self, entity: Entity)
@@ -272,27 +272,27 @@ where
 
     ///
     /// Add component to an entity and initialize with closure f.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();
-    /// 
+    ///
     /// entity_manager.add_component_with::<Position, _>(entity, |position|{
     ///   position.x = 20.0;
     ///   position.y = 50.0;
@@ -311,32 +311,32 @@ where
 
     ///
     /// Remove component to an entity.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
-    /// let entity = entity_manager.create_entity(); 
+    /// let entity = entity_manager.create_entity();
     /// entity_manager.add_component::<Position>(entity);
-    /// 
+    ///
     /// //
     /// // lot of things
     /// //
-    /// 
+    ///
     /// entity_manager.remove_component::<Position>(entity);
     /// ```
     pub fn remove_component<T>(&self, entity: Entity)
@@ -350,27 +350,27 @@ where
 
     ///
     /// Check if an entity has a component.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();
-    /// 
+    ///
     /// assert!(!entity_manager.has_component::<Position>(entity));
     /// entity_manager.add_component::<Position>(entity);
     /// assert!(entity_manager.has_component::<Position>(entity));
@@ -386,32 +386,32 @@ where
 
     ///
     /// Get a ref of component from an entity.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// if entity has not the component
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();    
     /// entity_manager.add_component::<Position>(entity);
-    /// 
+    ///
     /// let position = entity_manager.get_component::<Position>(entity);
     /// println!("{}, {}", position.x, position.y);
     /// ```
@@ -426,32 +426,32 @@ where
 
     ///
     /// Get a mut ref of component from an entity.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// if entity has not the component
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();    
     /// entity_manager.add_component::<Position>(entity);
-    /// 
+    ///
     /// let mut position = entity_manager.get_component_mut::<Position>(entity);
     /// position.x = 5.0;
     /// position.y = 5.0;
@@ -462,39 +462,37 @@ where
         T: Component,
         T::Storage: Storage<T>,
     {
-        RefMut::map(self.get_storage_mut(), |storage| {
-            storage.get_mut(entity)
-        })
+        RefMut::map(self.get_storage_mut(), |storage| storage.get_mut(entity))
     }
 
     ///
     /// Update a component from an entity via closure f.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// if entity has not the component
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let entity = entity_manager.create_entity();    
     /// entity_manager.add_component::<Position>(entity);
-    /// 
+    ///
     /// entity_manager.update_component_with::<Position, _>(entity, |position|{;
     ///     position.x = 5.0;
     ///     position.y = 5.0;
@@ -512,24 +510,24 @@ where
 
     ///
     /// Iterate on Entity that match the query.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component, Query};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let e1 = entity_manager.create_entity();
     /// entity_manager.add_component_with::<Position, _>(e1, |position|{;
@@ -541,17 +539,17 @@ where
     ///     position.x = 6.0;
     ///     position.y = 6.0;
     /// });
-    /// 
+    ///
     /// let mut query = Query::new();
     /// query.check_component_by::<Position, _>(|position| -> bool {position.x > 5.5});
-    /// 
+    ///
     /// println!("e1:{} e2:{}", e1.id, e2.id);
-    /// 
+    ///
     /// for entity in entity_manager.iter(&query) {
     ///     println!("entity:{}", entity.id);
     /// }
     /// ```
-    /// 
+    ///
     /// The output will be :
     /// ```text
     /// e1:0 e2:1
@@ -566,35 +564,35 @@ where
 
     ///
     /// Iterate over all Entities.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// # use entity_system::{Component, BasicVecStorage, create_entity_manager_component, Query};
-    /// # 
+    /// #
     /// # #[derive(Default)]
     /// # pub struct Position {
     /// #     pub x: f32,
     /// #     pub y: f32,
     /// # }
-    /// # 
+    /// #
     /// # impl Component for Position {
     /// #     type Storage = BasicVecStorage<Self>;
     /// # }
-    /// # 
+    /// #
     /// # create_entity_manager_component!(EMC { Position });
     /// # type EntityManager = entity_system::EntityManager<EMC>;
-    /// # 
+    /// #
     /// let mut entity_manager = EntityManager::new();
     /// let e1 = entity_manager.create_entity();
     /// let e2 = entity_manager.create_entity();
-    /// 
+    ///
     /// println!("e1:{} e2:{}", e1.id, e2.id);
-    /// 
+    ///
     /// for entity in entity_manager.iter_all() {
     ///     println!("entity:{}", entity.id);
     /// }
     /// ```
-    /// 
+    ///
     /// The output will be:
     /// ```text
     /// e1:0 e2:1
@@ -624,6 +622,9 @@ where
     }
 }
 
+///
+/// EntityIterator over EntityManager.
+/// cf [`EntityManager`] to have an example
 pub struct EntityIterator<'a, EntityManagerComponentType>
 where
     EntityManagerComponentType: EntityManagerComponent + Default,
@@ -637,6 +638,8 @@ impl<'a, EntityManagerComponentType> EntityIterator<'a, EntityManagerComponentTy
 where
     EntityManagerComponentType: EntityManagerComponent + Default,
 {
+    ///
+    /// Create an Iterator
     pub fn new(
         query: &'a Query<EntityManagerComponentType>,
         entity_manager: &'a EntityManager<EntityManagerComponentType>,
@@ -676,6 +679,71 @@ where
 type Filter<EntityManagerComponentType> =
     Box<dyn Fn(&EntityManager<EntityManagerComponentType>, Entity) -> bool>;
 
+///
+/// Query to select some Entity from EntityManager.
+///
+/// ## Examples
+/// ```rust
+/// use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
+///
+/// #[derive(Default)]
+/// pub struct Position {
+///     pub x: f32,
+///     pub y: f32,
+/// }
+///
+/// impl Component for Position {
+///     type Storage = BasicVecStorage<Self>;
+/// }
+/// #[derive(Default)]
+/// pub struct Velocity {
+///     pub x: f32,
+///     pub y: f32,
+/// }
+///
+/// impl Component for Velocity {
+///     type Storage = BasicVecStorage<Self>;
+/// }
+///
+/// create_entity_manager_component!(EMC { Position, Velocity});
+/// type EntityManager = entity_system::EntityManager<EMC>;
+/// type Query = entity_system::Query<EMC>;
+///
+/// let mut entity_manager = EntityManager::new();
+///
+/// //
+/// // select entity with component Position
+/// let mut query = Query::new();
+/// query.check_component::<Position>();
+///
+/// //
+/// // select entity without component Position
+/// let mut query = Query::new();
+/// query.check_not_component::<Position>();
+///
+/// //
+/// // select entity without component Position and position.x > 5.5
+/// let mut query = Query::new();
+/// query.check_component_by::<Position, _>(|position| -> bool {position.x > 5.5});
+///
+/// //
+/// // select entity with component Position and Velocity and position.x > 5.5 and velocity.y < 5
+/// let mut query = Query::new();
+/// query.check_component_by::<Position, _>(|position| -> bool {position.x > 5.5});
+/// query.check_component_by::<Velocity, _>(|velocity| -> bool {velocity.y < 5.0});
+///
+/// //
+/// // select entity with component Position and Velocity and position.x + velocity.x > 5
+/// let mut query = Query::new();
+/// query.check_component::<Position>();
+/// query.check_component::<Velocity>();
+/// query.check_global(|entity_manager, entity| -> bool {
+///     let pos_x = entity_manager.get_component::<Position>(entity).x;
+///     let vel_x = entity_manager.get_component::<Velocity>(entity).x;
+///     
+///     pos_x + vel_x > 5.0
+/// });
+/// ```
 #[derive(Default)]
 pub struct Query<EntityManagerComponentType>
 where
@@ -688,12 +756,16 @@ impl<EntityManagerComponentType> Query<EntityManagerComponentType>
 where
     EntityManagerComponentType: EntityManagerComponent + Default,
 {
+    ///
+    /// Create a new query
     pub fn new() -> Self {
         Self {
             filters: Vec::new(),
         }
     }
 
+    ///
+    /// Check if query match the entity.
     pub fn check(
         &self,
         entity_manager: &EntityManager<EntityManagerComponentType>,
@@ -709,6 +781,8 @@ where
         ret
     }
 
+    ///
+    /// Check entity has the component.
     pub fn check_component<C>(&mut self) -> &mut Self
     where
         EntityManagerComponentType: StorageAccess<C>,
@@ -722,6 +796,8 @@ where
         self
     }
 
+    ///
+    /// Check entity has not the component.
     pub fn check_not_component<C>(&mut self) -> &mut Self
     where
         EntityManagerComponentType: StorageAccess<C>,
@@ -735,6 +811,8 @@ where
         self
     }
 
+    ///
+    /// Check entity has the component and the composant match the closure f.
     pub fn check_component_by<C, F>(&mut self, f: F) -> &mut Self
     where
         EntityManagerComponentType: StorageAccess<C>,
@@ -754,6 +832,8 @@ where
         self
     }
 
+    ///
+    /// Check if entity match the closure f.
     pub fn check_global<F>(&mut self, f: F) -> &mut Self
     where
         F: Fn(&EntityManager<EntityManagerComponentType>, Entity) -> bool + 'static,

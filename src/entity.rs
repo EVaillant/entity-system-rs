@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 ///
-/// `Entity` type, as seen by the user.
+/// Entity type, as seen by the user.
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct Entity {
     /// id of Entity
@@ -18,44 +18,44 @@ impl Entity {
 
 ///
 /// Entity Factory.
-/// 
+///
 /// # Example
-/// 
+///
 /// * Allocation & free Entity
 /// ```rust
 /// use entity_system::EntityAllocator;
-/// 
+///
 /// // create allocator
 /// let mut allocator = EntityAllocator::new();
-/// 
+///
 /// // alloc a new entity
 /// let entity1 = allocator.alloc();
 /// let id1 = entity1.id;
-/// 
+///
 /// // free the entity
 /// allocator.free(entity1);
-/// 
+///
 /// // re-alloc an entity
 /// let entity2 = allocator.alloc();
 /// let id2 = entity2.id;
 /// assert!(id2 == id1);
 /// ```
-/// 
+///
 /// * Iter
 /// ```rust
 /// use entity_system::{EntityAllocator, Entity};
-/// 
+///
 /// let mut allocator = EntityAllocator::new();
-/// 
+///
 /// // alloc 5 entity
 /// for _ in 0..5 {
 ///     allocator.alloc();
 /// }
-/// 
+///
 /// // free 2 entities
 /// allocator.free(Entity::new(1));
 /// allocator.free(Entity::new(3));
-/// 
+///
 /// // iter over allocated entity
 /// for entity in allocator.iter() {
 ///     println!("{}", entity.id);

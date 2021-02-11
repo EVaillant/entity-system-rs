@@ -5,9 +5,9 @@ use crate::entity::Entity;
 pub trait Storage<T> {
     ///
     /// Allocation an item in the storage
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If allocation failed
     fn alloc(&mut self, entity: Entity);
 
@@ -17,17 +17,17 @@ pub trait Storage<T> {
 
     ///
     /// Get item from storage
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If no allocation has be done before
     fn get(&self, entity: Entity) -> &T;
 
     ///
     /// Get item from storage (mutable version)
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If no allocation has be done before
     fn get_mut(&mut self, entity: Entity) -> &mut T;
 
@@ -38,27 +38,27 @@ pub trait Storage<T> {
 
 ///
 /// Implementation of Storage<T> with a [`Vec`] as underlying.
-/// 
+///
 /// # Example
 /// ```rust
 ///     use entity_system::{Entity, Storage, BasicVecStorage};
-/// 
+///
 ///     let mut storage : BasicVecStorage<u32> = Default::default();
 ///     let entity = Entity::new(0);
-/// 
+///
 ///     // allocation (default value is 0)
 ///     storage.alloc(entity);
-/// 
+///
 ///     // read the value
 ///     let val = storage.get(entity);
 ///     assert!(*val == 0);
-/// 
+///
 ///     // update the value
 ///     let val = storage.get_mut(entity);
 ///     *val = 5;
-/// 
+///
 ///     // free
-///     storage.free(entity); 
+///     storage.free(entity);
 /// ```
 #[derive(Default)]
 pub struct BasicVecStorage<T>
