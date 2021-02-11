@@ -4,11 +4,11 @@ use std::cell::{Ref, RefMut};
 
 ///
 /// Create EntityManagerComponent
-/// 
+///
 /// # Arguments
 /// * `name`  name of EntityManagerComponent class
 /// * `component` list of component
-/// 
+///
 /// # Examples
 /// ```rust
 /// use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
