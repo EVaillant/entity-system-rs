@@ -2,6 +2,40 @@ use crate::entity::{Entity, EntityAllocator, EntityAllocatorIterator};
 use crate::storage::Storage;
 use std::cell::{Ref, RefMut};
 
+///
+/// Create EntityManagerComponent
+/// 
+/// # Arguments
+/// * `name`  name of EntityManagerComponent class
+/// * `component` list of component
+/// 
+/// # Examples
+/// ```rust
+/// use entity_system::{Component, BasicVecStorage, create_entity_manager_component};
+///
+/// #[derive(Default)]
+/// pub struct Position {
+///     pub x: f32,
+///     pub y: f32,
+/// }
+///
+/// impl Component for Position {
+///     type Storage = BasicVecStorage<Self>;
+/// }
+/// #[derive(Default)]
+/// pub struct Velocity {
+///     pub x: f32,
+///     pub y: f32,
+/// }
+///
+/// impl Component for Velocity {
+///     type Storage = BasicVecStorage<Self>;
+/// }
+///
+/// create_entity_manager_component!(EMC { Position, Velocity});
+/// type EntityManager = entity_system::EntityManager<EMC>;
+/// type Query = entity_system::Query<EMC>;
+///```
 #[macro_export]
 macro_rules! create_entity_manager_component {
     ($name:ident { $($component:ident),* }) => {
