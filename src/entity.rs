@@ -4,6 +4,7 @@ use std::collections::HashSet;
 /// `Entity` type, as seen by the user.
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct Entity {
+    /// id of Entity
     pub id: u32,
 }
 
@@ -16,7 +17,7 @@ impl Entity {
 }
 
 ///
-/// Entity Factory
+/// Entity Factory.
 /// 
 /// # Example
 /// 
@@ -117,7 +118,7 @@ impl Default for EntityAllocator {
 }
 
 ///
-/// EntityAllocatorIterator over EntityAllocator
+/// EntityAllocatorIterator over EntityAllocator.
 /// cf [`EntityAllocator`] to have an example
 pub struct EntityAllocatorIterator<'a> {
     allocator: &'a EntityAllocator,

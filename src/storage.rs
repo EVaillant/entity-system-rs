@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 
 ///
-/// Trait must be implemented to store [`crate::Composant`]
+/// Trait must be implemented to store [`crate::Component`]
 pub trait Storage<T> {
     ///
     /// Allocation an item in the storage

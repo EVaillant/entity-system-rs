@@ -1,5 +1,5 @@
 use entity_system::{
-    create_entity_manager_composant, BasicVecStorage, Composant, EntityManager, Query,
+    create_entity_manager_component, BasicVecStorage, Component, EntityManager, Query,
 };
 
 #[derive(Default)]
@@ -8,7 +8,7 @@ struct Position {
     y: u32,
 }
 
-impl Composant for Position {
+impl Component for Position {
     type Storage = BasicVecStorage<Position>;
 }
 
@@ -18,63 +18,63 @@ struct Velocity {
     y: i32,
 }
 
-impl Composant for Velocity {
+impl Component for Velocity {
     type Storage = BasicVecStorage<Velocity>;
 }
 
-create_entity_manager_composant!(EMC { Position, Velocity });
+create_entity_manager_component!(EMC { Position, Velocity });
 type MyEntityManager = EntityManager<EMC>;
 
 #[test]
 fn test_entity_manager_01() {
     let mut entity_manager = MyEntityManager::new();
     let e = entity_manager.create_entity();
-    assert!(!entity_manager.has_composant::<Position>(e));
-    assert!(!entity_manager.has_composant::<Velocity>(e));
-    entity_manager.add_composant::<Position>(e);
-    assert!(entity_manager.has_composant::<Position>(e));
-    assert!(!entity_manager.has_composant::<Velocity>(e));
+    assert!(!entity_manager.has_component::<Position>(e));
+    assert!(!entity_manager.has_component::<Velocity>(e));
+    entity_manager.add_component::<Position>(e);
+    assert!(entity_manager.has_component::<Position>(e));
+    assert!(!entity_manager.has_component::<Velocity>(e));
 
-    entity_manager.update_composant_with::<Position, _>(e, |position| {
+    entity_manager.update_component_with::<Position, _>(e, |position| {
         position.x = 5;
         position.y = 6;
     });
 
     {
-        let position = entity_manager.get_composant::<Position>(e);
+        let position = entity_manager.get_component::<Position>(e);
         assert_eq!(position.x, 5);
         assert_eq!(position.y, 6);
     }
 
-    entity_manager.remove_composant::<Position>(e);
-    entity_manager.add_composant::<Velocity>(e);
-    assert!(!entity_manager.has_composant::<Position>(e));
-    assert!(entity_manager.has_composant::<Velocity>(e));
+    entity_manager.remove_component::<Position>(e);
+    entity_manager.add_component::<Velocity>(e);
+    assert!(!entity_manager.has_component::<Position>(e));
+    assert!(entity_manager.has_component::<Velocity>(e));
 
-    entity_manager.update_composant_with::<Velocity, _>(e, |velocity| {
+    entity_manager.update_component_with::<Velocity, _>(e, |velocity| {
         velocity.x = 5;
         velocity.y = 6;
     });
 
     {
-        let velocity = entity_manager.get_composant::<Velocity>(e);
+        let velocity = entity_manager.get_component::<Velocity>(e);
         assert_eq!(velocity.x, 5);
         assert_eq!(velocity.y, 6);
     }
 
     entity_manager.delete_entity(e);
-    assert!(!entity_manager.has_composant::<Position>(e));
-    assert!(!entity_manager.has_composant::<Velocity>(e));
+    assert!(!entity_manager.has_component::<Position>(e));
+    assert!(!entity_manager.has_component::<Velocity>(e));
 }
 
 #[test]
 fn test_entity_manager_02() {
     let mut entity_manager = MyEntityManager::new();
     let e1 = entity_manager.create_entity();
-    entity_manager.add_composant::<Position>(e1);
+    entity_manager.add_component::<Position>(e1);
     let e2 = entity_manager.create_entity();
-    entity_manager.add_composant::<Position>(e2);
-    entity_manager.add_composant::<Velocity>(e2);
+    entity_manager.add_component::<Position>(e2);
+    entity_manager.add_component::<Velocity>(e2);
 
     {
         let mut r = Vec::new();
@@ -88,7 +88,7 @@ fn test_entity_manager_02() {
 
     {
         let mut query = Query::new();
-        query.check_composant::<Position>();
+        query.check_component::<Position>();
         let mut r = Vec::new();
         for entity in entity_manager.iter(&query) {
             if !r.contains(&entity) && (entity == e1 || entity == e2) {
@@ -100,8 +100,8 @@ fn test_entity_manager_02() {
 
     {
         let mut query = Query::new();
-        query.check_composant::<Position>();
-        query.check_composant::<Velocity>();
+        query.check_component::<Position>();
+        query.check_component::<Velocity>();
         let mut r = Vec::new();
         for entity in entity_manager.iter(&query) {
             if !r.contains(&entity) && (entity == e2) {
@@ -112,12 +112,12 @@ fn test_entity_manager_02() {
     }
 
     {
-        entity_manager.update_composant_with::<Position, _>(e1, |position| {
+        entity_manager.update_component_with::<Position, _>(e1, |position| {
             position.x = 5;
         });
 
         let mut query = Query::new();
-        query.check_composant_by::<Position, _>(|position| -> bool { position.x > 2 });
+        query.check_component_by::<Position, _>(|position| -> bool { position.x > 2 });
         let mut r = Vec::new();
         for entity in entity_manager.iter(&query) {
             if !r.contains(&entity) && (entity == e1) {
@@ -129,7 +129,7 @@ fn test_entity_manager_02() {
 
     {
         let mut query = Query::new();
-        query.check_not_composant::<Velocity>();
+        query.check_not_component::<Velocity>();
         let mut r = Vec::new();
         for entity in entity_manager.iter(&query) {
             if !r.contains(&entity) && (entity == e1) {

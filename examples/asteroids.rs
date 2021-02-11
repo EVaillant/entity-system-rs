@@ -31,7 +31,7 @@ impl Position {
     }
 }
 
-impl entity_system::Composant for Position {
+impl entity_system::Component for Position {
     type Storage = entity_system::BasicVecStorage<Self>;
 }
 
@@ -49,7 +49,7 @@ impl Default for Velocity {
     }
 }
 
-impl entity_system::Composant for Velocity {
+impl entity_system::Component for Velocity {
     type Storage = entity_system::BasicVecStorage<Self>;
 }
 
@@ -67,11 +67,11 @@ impl Default for Shape {
     }
 }
 
-impl entity_system::Composant for Shape {
+impl entity_system::Component for Shape {
     type Storage = entity_system::BasicVecStorage<Self>;
 }
 
-entity_system::create_entity_manager_composant!(EMC {
+entity_system::create_entity_manager_component!(EMC {
     Position,
     Velocity,
     Shape
@@ -86,7 +86,7 @@ fn update_velocity_angle(
     entity: Entity,
     delta_angle: Deg<f32>,
 ) {
-    entity_manager.update_composant_with::<Velocity, _>(entity, |velocity| {
+    entity_manager.update_component_with::<Velocity, _>(entity, |velocity| {
         velocity.angle += delta_angle;
     });
 }
@@ -96,9 +96,9 @@ fn update_velocity_position(
     entity: Entity,
     delta_position: Vector2<f32>,
 ) {
-    let position = entity_manager.get_composant::<Position>(entity);
+    let position = entity_manager.get_component::<Position>(entity);
     let delta = (Matrix3::from_angle_z(position.angle) * delta_position.extend(1.0)).truncate();
-    entity_manager.update_composant_with::<Velocity, _>(entity, |velocity| {
+    entity_manager.update_component_with::<Velocity, _>(entity, |velocity| {
         velocity.position += delta;
         velocity.position.x = velocity.position.x.min(5.0).max(-5.0);
         velocity.position.y = velocity.position.y.min(5.0).max(-5.0);
@@ -110,13 +110,13 @@ fn main() -> Result<(), String> {
     for i in 0..20 {
         let entity = entity_manager.create_entity();
 
-        entity_manager.add_composant_with::<Position, _>(entity, |position| {
+        entity_manager.add_component_with::<Position, _>(entity, |position| {
             position.position.x = rand::random::<f32>() * 800.0;
             position.position.y = rand::random::<f32>() * 600.0;
             position.angle = Deg(rand::random::<f32>() * 360.0);
         });
 
-        entity_manager.add_composant_with::<Shape, _>(entity, |shape| {
+        entity_manager.add_component_with::<Shape, _>(entity, |shape| {
             if i % 2 == 0 {
                 *shape = Shape::Circle;
             } else {
@@ -127,17 +127,17 @@ fn main() -> Result<(), String> {
 
     let starship_entity = entity_manager.create_entity();
 
-    entity_manager.add_composant_with::<Position, _>(starship_entity, |position| {
+    entity_manager.add_component_with::<Position, _>(starship_entity, |position| {
         position.position.x = 400.0;
         position.position.y = 300.0;
         position.angle = Deg::zero();
     });
 
-    entity_manager.add_composant_with::<Shape, _>(starship_entity, |shape| {
+    entity_manager.add_component_with::<Shape, _>(starship_entity, |shape| {
         *shape = Shape::Triangle;
     });
 
-    entity_manager.add_composant::<Velocity>(starship_entity);
+    entity_manager.add_component::<Velocity>(starship_entity);
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -152,25 +152,25 @@ fn main() -> Result<(), String> {
 
     let mut query_drawable = Query::new();
     query_drawable
-        .check_composant::<Shape>()
-        .check_composant::<Position>();
+        .check_component::<Shape>()
+        .check_component::<Position>();
 
     let mut query_bullet = Query::new();
     query_bullet
-        .check_composant_by::<Shape, _>(|shape| -> bool { *shape == Shape::Bullet })
-        .check_composant::<Position>();
+        .check_component_by::<Shape, _>(|shape| -> bool { *shape == Shape::Bullet })
+        .check_component::<Position>();
 
     let mut query_target = Query::new();
     query_target
-        .check_composant_by::<Shape, _>(|shape| -> bool {
+        .check_component_by::<Shape, _>(|shape| -> bool {
             *shape == Shape::Square || *shape == Shape::Circle
         })
-        .check_composant::<Position>();
+        .check_component::<Position>();
 
     let mut query_velocity = Query::new();
     query_velocity
-        .check_composant::<Velocity>()
-        .check_composant::<Position>();
+        .check_component::<Velocity>()
+        .check_component::<Position>();
 
     'mainloop: loop {
         while let Some(event) = event_pump.poll_event() {
@@ -218,19 +218,19 @@ fn main() -> Result<(), String> {
                 } => {
                     let bullet = entity_manager.create_entity();
                     let matrix = entity_manager
-                        .get_composant::<Position>(starship_entity)
+                        .get_component::<Position>(starship_entity)
                         .get_matrix();
                     let center_pos = (matrix * Vector3::new(0.0, 0.0, 1.0)).truncate();
                     let start_pos = (matrix * Vector3::new(0.0, 10.0, 1.0)).truncate();
-                    entity_manager.add_composant_with::<Position, _>(bullet, |position| {
+                    entity_manager.add_component_with::<Position, _>(bullet, |position| {
                         position.position = start_pos;
                     });
 
-                    entity_manager.add_composant_with::<Velocity, _>(bullet, |velocity| {
+                    entity_manager.add_component_with::<Velocity, _>(bullet, |velocity| {
                         velocity.position = (start_pos - center_pos).normalize() * 6.0;
                     });
 
-                    entity_manager.add_composant_with::<Shape, _>(bullet, |shape| {
+                    entity_manager.add_component_with::<Shape, _>(bullet, |shape| {
                         *shape = Shape::Bullet;
                     });
                 }
@@ -239,8 +239,8 @@ fn main() -> Result<(), String> {
         }
 
         for entity in entity_manager.iter(&query_velocity) {
-            entity_manager.update_composant_with::<Position, _>(entity, |position| {
-                let velocity = entity_manager.get_composant::<Velocity>(entity);
+            entity_manager.update_component_with::<Position, _>(entity, |position| {
+                let velocity = entity_manager.get_component::<Velocity>(entity);
 
                 position.position.x += velocity.position.x;
                 position.position.y += velocity.position.y;
@@ -251,11 +251,11 @@ fn main() -> Result<(), String> {
         let mut delete_entities = Vec::new();
         for bullet_entity in entity_manager.iter(&query_bullet) {
             let bullet_position = entity_manager
-                .get_composant::<Position>(bullet_entity)
+                .get_component::<Position>(bullet_entity)
                 .position;
             for target_entity in entity_manager.iter(&query_target) {
                 let target_position = entity_manager
-                    .get_composant::<Position>(target_entity)
+                    .get_component::<Position>(target_entity)
                     .position;
                 if (target_position - bullet_position).magnitude() < 10.0 {
                     delete_entities.push(target_entity);
@@ -272,8 +272,8 @@ fn main() -> Result<(), String> {
         canvas.clear();
 
         for entity in entity_manager.iter(&query_drawable) {
-            let position = entity_manager.get_composant::<Position>(entity);
-            let shape = entity_manager.get_composant::<Shape>(entity);
+            let position = entity_manager.get_component::<Position>(entity);
+            let shape = entity_manager.get_component::<Shape>(entity);
             match *shape {
                 Shape::Circle => {
                     canvas.circle(
