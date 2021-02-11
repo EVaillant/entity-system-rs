@@ -15,7 +15,9 @@ extern crate entity_system;
 
 ### Documentation
 
-- [master documentation](https://evaillant.github.io/entity-system-rs/doc/api/entity_system/index.html).
+- [master api documentation](https://evaillant.github.io/entity-system-rs/doc/api/entity_system/index.html).
+- examples
+  - [asteroids](./doc/asteroids.md) Basic Asteroids implementation.
 
 ### Inspiration & Related Projects
 
