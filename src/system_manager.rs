@@ -20,25 +20,25 @@ pub enum RefreshPeriod {
 
 ///
 /// Abstract system type.
-/// 
+///
 /// It will be executed by [`SystemManager`]
 /// # Example
 /// ```rust
 /// use entity_system::{System, RefreshPeriod};
-/// 
+///
 /// struct MoveSystem {
 /// }
-/// 
+///
 /// impl System for MoveSystem {
 ///     fn name(&self) -> &'static str {
 ///         "move"
 ///     }
-/// 
+///
 ///     fn run(&mut self) -> RefreshPeriod {
 ///         //
 ///         // Do lot of thing
 ///         //
-/// 
+///
 ///         RefreshPeriod::EveryTime
 ///     }         
 /// }
@@ -46,45 +46,45 @@ pub enum RefreshPeriod {
 pub trait System {
     ///
     /// Get the system name.
-    /// 
+    ///
     /// The name must be unique and constant.
     fn name(&self) -> &'static str;
 
     ///
     /// Execute the system.
-    /// 
+    ///
     /// # Return
-    /// 
+    ///
     /// The next execution time.
     fn run(&mut self) -> RefreshPeriod;
 }
 
 ///
 /// Manage & Execute [`System`]\(s)
-/// 
+///
 /// # Example
 /// ```rust
 /// use std::cell::RefCell;
 /// use std::rc::Rc;
 /// use entity_system::{SystemManager, System, RefreshPeriod};
-/// 
+///
 /// struct MoveSystem {
 /// }
-/// 
+///
 /// impl System for MoveSystem {
 ///     fn name(&self) -> &'static str {
 ///         "move"
 ///     }
-/// 
+///
 ///     fn run(&mut self) -> RefreshPeriod {
 ///         //
 ///         // Do lot of thing
 ///         //
-/// 
+///
 ///         RefreshPeriod::EveryTime
 ///     }         
 /// }
-/// 
+///
 /// let mut system_manager = SystemManager::new();
 /// system_manager.add_system(Rc::new(RefCell::new(MoveSystem {})));
 /// system_manager.update();
