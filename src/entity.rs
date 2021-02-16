@@ -118,8 +118,9 @@ impl Default for EntityAllocator {
 }
 
 ///
-/// EntityAllocatorIterator over EntityAllocator.
-/// cf [`EntityAllocator`] to have an example
+/// Iterator over [`EntityAllocator`].
+///
+/// Cf [`EntityAllocator`] to have an example
 pub struct EntityAllocatorIterator<'a> {
     allocator: &'a EntityAllocator,
     current: Entity,

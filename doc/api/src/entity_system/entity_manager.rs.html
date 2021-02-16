@@ -879,6 +879,7 @@
 <span id="876">876</span>
 <span id="877">877</span>
 <span id="878">878</span>
+<span id="879">879</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">entity</span>::{<span class="ident">Entity</span>, <span class="ident">EntityAllocator</span>, <span class="ident">EntityAllocatorIterator</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">storage</span>::<span class="ident">Storage</span>;
@@ -1539,8 +1540,9 @@
 }
 
 <span class="doccomment">///</span>
-<span class="doccomment">/// EntityIterator over EntityManager.</span>
-<span class="doccomment">/// cf [`EntityManager`] to have an example</span>
+<span class="doccomment">/// Iterator over [`EntityManager`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Cf [`EntityManager`] to have an example.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EntityIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">EntityManagerComponentType</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">EntityManagerComponentType</span>: <span class="ident">EntityManagerComponent</span> <span class="op">+</span> <span class="ident">Default</span>,
@@ -1596,7 +1598,7 @@
     <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">EntityManager</span><span class="op">&lt;</span><span class="ident">EntityManagerComponentType</span><span class="op">&gt;</span>, <span class="ident">Entity</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>;
 
 <span class="doccomment">///</span>
-<span class="doccomment">/// Query to select some Entity from EntityManager.</span>
+<span class="doccomment">/// Query to select some [`Entity`] from [`EntityManager`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Examples</span>
 <span class="doccomment">/// ```rust</span>

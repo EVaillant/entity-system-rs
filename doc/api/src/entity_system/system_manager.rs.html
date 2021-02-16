@@ -186,25 +186,25 @@
 
 <span class="doccomment">///</span>
 <span class="doccomment">/// Abstract system type.</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// It will be executed by [`SystemManager`]</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// use entity_system::{System, RefreshPeriod};</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// struct MoveSystem {</span>
 <span class="doccomment">/// }</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// impl System for MoveSystem {</span>
 <span class="doccomment">///     fn name(&amp;self) -&gt; &amp;&#39;static str {</span>
 <span class="doccomment">///         &quot;move&quot;</span>
 <span class="doccomment">///     }</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">///     fn run(&amp;mut self) -&gt; RefreshPeriod {</span>
 <span class="doccomment">///         //</span>
 <span class="doccomment">///         // Do lot of thing</span>
 <span class="doccomment">///         //</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">///         RefreshPeriod::EveryTime</span>
 <span class="doccomment">///     }         </span>
 <span class="doccomment">/// }</span>
@@ -212,45 +212,45 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">System</span> {
     <span class="doccomment">///</span>
     <span class="doccomment">/// Get the system name.</span>
-    <span class="doccomment">/// </span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// The name must be unique and constant.</span>
     <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
     <span class="doccomment">///</span>
     <span class="doccomment">/// Execute the system.</span>
-    <span class="doccomment">/// </span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Return</span>
-    <span class="doccomment">/// </span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// The next execution time.</span>
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefreshPeriod</span>;
 }
 
 <span class="doccomment">///</span>
 <span class="doccomment">/// Manage &amp; Execute [`System`]\(s)</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// use std::cell::RefCell;</span>
 <span class="doccomment">/// use std::rc::Rc;</span>
 <span class="doccomment">/// use entity_system::{SystemManager, System, RefreshPeriod};</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// struct MoveSystem {</span>
 <span class="doccomment">/// }</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// impl System for MoveSystem {</span>
 <span class="doccomment">///     fn name(&amp;self) -&gt; &amp;&#39;static str {</span>
 <span class="doccomment">///         &quot;move&quot;</span>
 <span class="doccomment">///     }</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">///     fn run(&amp;mut self) -&gt; RefreshPeriod {</span>
 <span class="doccomment">///         //</span>
 <span class="doccomment">///         // Do lot of thing</span>
 <span class="doccomment">///         //</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">///         RefreshPeriod::EveryTime</span>
 <span class="doccomment">///     }         </span>
 <span class="doccomment">/// }</span>
-<span class="doccomment">/// </span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// let mut system_manager = SystemManager::new();</span>
 <span class="doccomment">/// system_manager.add_system(Rc::new(RefCell::new(MoveSystem {})));</span>
 <span class="doccomment">/// system_manager.update();</span>

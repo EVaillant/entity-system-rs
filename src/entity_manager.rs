@@ -657,8 +657,9 @@ where
 }
 
 ///
-/// EntityIterator over EntityManager.
-/// cf [`EntityManager`] to have an example
+/// Iterator over [`EntityManager`].
+///
+/// Cf [`EntityManager`] to have an example.
 pub struct EntityIterator<'a, EntityManagerComponentType>
 where
     EntityManagerComponentType: EntityManagerComponent + Default,
@@ -714,7 +715,7 @@ type Filter<EntityManagerComponentType> =
     Box<dyn Fn(&EntityManager<EntityManagerComponentType>, Entity) -> bool>;
 
 ///
-/// Query to select some Entity from EntityManager.
+/// Query to select some [`Entity`] from [`EntityManager`].
 ///
 /// ## Examples
 /// ```rust
