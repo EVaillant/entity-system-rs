@@ -87,7 +87,7 @@ pub trait System {
 ///
 /// let mut system_manager = SystemManager::new();
 /// system_manager.add_system(Rc::new(RefCell::new(MoveSystem {})));
-/// system_manager.update();
+/// system_manager.update(||{});
 /// ```
 pub struct SystemManager {
     systems: Vec<Rc<RefCell<dyn System>>>,
@@ -131,8 +131,9 @@ impl SystemManager {
 
     ///
     /// Execute all systems
-    pub fn update<F>(&self, mut f: F) where
-    F : FnMut()
+    pub fn update<F>(&self, mut f: F)
+    where
+        F: FnMut(),
     {
         let now = Instant::now();
         for ((id, system), refresh) in self.systems.iter().enumerate().zip(self.refresh.iter()) {
