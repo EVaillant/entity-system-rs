@@ -462,7 +462,7 @@ fn main() -> Result<(), String> {
     system_manager.add_system(Rc::clone(&keyboard_system));
 
     while !keyboard_system.borrow().quit() {
-        system_manager.update();
+        system_manager.update(||{});
     }
 
     Ok(())

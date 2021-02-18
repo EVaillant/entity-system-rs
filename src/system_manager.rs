@@ -131,7 +131,9 @@ impl SystemManager {
 
     ///
     /// Execute all systems
-    pub fn update(&self) {
+    pub fn update<F>(&self, mut f: F) where
+    F : FnMut()
+    {
         let now = Instant::now();
         for ((id, system), refresh) in self.systems.iter().enumerate().zip(self.refresh.iter()) {
             let refresh = *refresh.borrow();
@@ -151,6 +153,7 @@ impl SystemManager {
             if new_refresh != refresh {
                 self.set_refresh_by_pos(id, new_refresh);
             }
+            f();
         }
     }
 }
