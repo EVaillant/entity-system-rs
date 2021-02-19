@@ -1,11 +1,13 @@
+use crate::event_dispatcher::EventDispatcher;
 use std::cell::RefCell;
+use std::cmp::{max, Ord, Ordering};
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Instant;
 
 ///
 /// Definie the system execution period.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum RefreshPeriod {
     ///
     /// Each time.
@@ -18,6 +20,28 @@ pub enum RefreshPeriod {
     Stop,
 }
 
+impl Ord for RefreshPeriod {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (RefreshPeriod::EveryTime, RefreshPeriod::EveryTime) => Ordering::Equal,
+            (RefreshPeriod::EveryTime, _) => Ordering::Greater,
+            (RefreshPeriod::At(_), RefreshPeriod::EveryTime) => Ordering::Less,
+            (RefreshPeriod::At(self_time), RefreshPeriod::At(other_time)) => {
+                self_time.cmp(other_time)
+            }
+            (RefreshPeriod::At(_), RefreshPeriod::Stop) => Ordering::Greater,
+            (RefreshPeriod::Stop, RefreshPeriod::Stop) => Ordering::Equal,
+            (RefreshPeriod::Stop, _) => Ordering::Less,
+        }
+    }
+}
+
+impl PartialOrd for RefreshPeriod {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 ///
 /// Abstract system type.
 ///
@@ -25,6 +49,7 @@ pub enum RefreshPeriod {
 /// # Example
 /// ```rust
 /// use entity_system::{System, RefreshPeriod};
+/// use std::time::Instant;
 ///
 /// struct MoveSystem {
 /// }
@@ -34,7 +59,7 @@ pub enum RefreshPeriod {
 ///         "move"
 ///     }
 ///
-///     fn run(&mut self) -> RefreshPeriod {
+///     fn run(&mut self, now : Instant) -> RefreshPeriod {
 ///         //
 ///         // Do lot of thing
 ///         //
@@ -53,10 +78,13 @@ pub trait System {
     ///
     /// Execute the system.
     ///
+    /// # Arguments
+    /// * `now` system rum time.
+    ///
     /// # Return
     ///
     /// The next execution time.
-    fn run(&mut self) -> RefreshPeriod;
+    fn run(&mut self, now: Instant) -> RefreshPeriod;
 }
 
 ///
@@ -67,6 +95,10 @@ pub trait System {
 /// use std::cell::RefCell;
 /// use std::rc::Rc;
 /// use entity_system::{SystemManager, System, RefreshPeriod};
+/// use std::time::Instant;
+///
+/// entity_system::create_event_adapters!(EventAdapters {});
+/// type EventDispatcher = entity_system::EventDispatcher<EventAdapters>;
 ///
 /// struct MoveSystem {
 /// }
@@ -76,7 +108,7 @@ pub trait System {
 ///         "move"
 ///     }
 ///
-///     fn run(&mut self) -> RefreshPeriod {
+///     fn run(&mut self, now : Instant) -> RefreshPeriod {
 ///         //
 ///         // Do lot of thing
 ///         //
@@ -85,9 +117,10 @@ pub trait System {
 ///     }         
 /// }
 ///
+/// let event_dispatcher = EventDispatcher::new();
 /// let mut system_manager = SystemManager::new();
 /// system_manager.add_system(Rc::new(RefCell::new(MoveSystem {})));
-/// system_manager.update(||{});
+/// system_manager.update(&event_dispatcher);
 /// ```
 pub struct SystemManager {
     systems: Vec<Rc<RefCell<dyn System>>>,
@@ -131,31 +164,28 @@ impl SystemManager {
 
     ///
     /// Execute all systems
-    pub fn update<F>(&self, mut f: F)
+    pub fn update<EventAdapters>(
+        &self,
+        event_dispatcher: &Rc<EventDispatcher<EventAdapters>>,
+    ) -> RefreshPeriod
     where
-        F: FnMut(),
+        EventAdapters: Default,
     {
+        let mut ret = RefreshPeriod::Stop;
         let now = Instant::now();
         for ((id, system), refresh) in self.systems.iter().enumerate().zip(self.refresh.iter()) {
             let refresh = *refresh.borrow();
-            match refresh {
-                RefreshPeriod::At(time) => {
-                    if now < time {
-                        continue;
-                    }
+            ret = max(ret, refresh);
+            if RefreshPeriod::At(now) < refresh {
+                let mut system = system.borrow_mut();
+                let new_refresh = system.run(now);
+                if new_refresh != refresh {
+                    self.set_refresh_by_pos(id, new_refresh);
                 }
-                RefreshPeriod::EveryTime => {}
-                RefreshPeriod::Stop => {
-                    continue;
-                }
+                event_dispatcher.dispatch();
             }
-            let mut system = system.borrow_mut();
-            let new_refresh = system.run();
-            if new_refresh != refresh {
-                self.set_refresh_by_pos(id, new_refresh);
-            }
-            f();
         }
+        ret
     }
 }
 

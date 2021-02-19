@@ -1,5 +1,8 @@
 use cgmath::{prelude::*, Deg, Matrix3, Vector2, Vector3};
 
+entity_system::create_event_adapters!(EventAdapters {});
+type EventDispatcher = entity_system::EventDispatcher<EventAdapters>;
+
 extern crate sdl2;
 
 use sdl2::event::Event;
@@ -107,7 +110,7 @@ impl entity_system::System for Move {
         "move"
     }
 
-    fn run(&mut self) -> entity_system::RefreshPeriod {
+    fn run(&mut self, _now: Instant) -> entity_system::RefreshPeriod {
         let entity_manager = self.entity_manager.borrow();
         for entity in entity_manager.iter(&self.query_velocity) {
             entity_manager.update_component_with::<Position, _>(entity, |position| {
@@ -162,7 +165,7 @@ impl entity_system::System for Draw {
         "draw"
     }
 
-    fn run(&mut self) -> entity_system::RefreshPeriod {
+    fn run(&mut self, _now: Instant) -> entity_system::RefreshPeriod {
         let entity_manager = self.entity_manager.borrow();
 
         self.canvas.set_draw_color(Color::BLACK);
@@ -258,7 +261,7 @@ impl entity_system::System for Hit {
         "hit"
     }
 
-    fn run(&mut self) -> entity_system::RefreshPeriod {
+    fn run(&mut self, _now: Instant) -> entity_system::RefreshPeriod {
         let entity_manager = self.entity_manager.borrow();
 
         let mut delete_entities = Vec::new();
@@ -336,7 +339,7 @@ impl entity_system::System for Keyboard {
         "keyboard"
     }
 
-    fn run(&mut self) -> entity_system::RefreshPeriod {
+    fn run(&mut self, _now: Instant) -> entity_system::RefreshPeriod {
         while let Some(event) = self.event_pump.poll_event() {
             match event {
                 Event::KeyDown {
@@ -440,6 +443,7 @@ fn create_starship(entity_manager: &mut EntityManager) -> Entity {
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
 
+    let event_dispatcher = EventDispatcher::new();
     let entity_manager = Rc::new(RefCell::new(EntityManager::new()));
 
     for i in 0..20 {
@@ -462,7 +466,7 @@ fn main() -> Result<(), String> {
     system_manager.add_system(Rc::clone(&keyboard_system));
 
     while !keyboard_system.borrow().quit() {
-        system_manager.update(|| {});
+        system_manager.update(&event_dispatcher);
     }
 
     Ok(())
